@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap" rel="stylesheet">
+  <title>¿DE QUÉ COLOR ES? - JI Nº 906 - 3F</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: "Merriweather", serif;
+      background-color: #e8e8e8;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 20px;
+      color: #333;
+    }
+
+    #pantalla-inicio {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: center;
+      z-index: 10;
+      color: #222;
+    }
+
+    #pantalla-inicio img {
+      max-width: 400px;
+      margin-bottom: 20px;
+      width: 100%;
+      height: auto;
+    }
+
+    #pantalla-inicio p {
+      font-size: 18px;
+      margin-bottom: 20px;
+      max-width: 400px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #4CAF50;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #contenedor-juego {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 20px 20px;
+      box-sizing: border-box;
+    }
+
+    #tablero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      align-items: center; 
+      gap: 20px;
+    }
+
+    .columna {
+      background-color: #e8e8e8;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 18px; /* aumentado de 12 a 18 para más espacio */
+      justify-items: center;
+      align-items: center;
+      border-radius: 6px;
+      box-sizing: border-box;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .img-container {
+      width: 100%;
+      height: 100%;
+      max-width: 140px;
+      max-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 6px;
+    }
+
+    .img-container.grayscale img {
+      filter: grayscale(100%);
+      opacity: 0.7;
+    }
+
+    .img-container img {
+      max-height: 90%;
+      max-width: 90%;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    #mensaje {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #2e7d32;
+      min-height: 24px;
+      animation: parpadeo 1s infinite alternate;
+    }
+
+    @keyframes parpadeo {
+      from { opacity: 1; }
+      to { opacity: 0.6; }
+    }
+
+    #boton-reiniciar {
+      margin-top: 10px;
+      max-width: 200px;
+    }
+
+    @media (max-width: 600px) {
+      .columna {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 14px; /* algo más chico para móviles */
+        padding: 10px;
+        max-width: 100%;
+      }
+
+      .img-container {
+        max-width: 120px;
+        max-height: 120px;
+      }
+
+      button {
+        max-width: 180px;
+        font-family: "Merriweather";
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Pantalla de inicio -->
+<div id="pantalla-inicio">
+  <img src="./img/logocolor.png" alt="Logo del Juego" />
+  <p>Une cada residuo orgánico o verdura, con el pigmento que se obtiene de cada uno. Tocá en una imagen de cada lado para seleccionarlas.</p>
+  <button onclick="iniciarJuego()">COMENZAR</button>
+</div>
+
+<!-- Contenedor del juego -->
+<div id="contenedor-juego">
+  <div id="tablero">
+    <div id="columna-objetos" class="columna"></div>
+    <div id="columna-pigmentos" class="columna"></div>
+  </div>
+  <div id="mensaje"></div>
+  <button id="boton-reiniciar" onclick="reiniciarJuego()">REINICIAR</button>
+</div>
+
+<script>
+  const objetosOriginal = [
+    { nombre: 'te', img: './img/te.png' },
+    { nombre: 'cebolla', img: './img/cebolla.png' },
+    { nombre: 'yerba', img: './img/yerba.png' },
+    { nombre: 'cafe', img: './img/cafe.png' },
+    { nombre: 'remolacha', img: './img/remolacha.png' },
+    { nombre: 'repollo', img: './img/repollo.png' }
+  ];
+
+  const pigmentosOriginal = [
+    { nombre: 'te', img: './img/naranja te.png' },
+    { nombre: 'cebolla', img: './img/naranja cebolla.png' },
+    { nombre: 'yerba', img: './img/verde.png' },
+    { nombre: 'cafe', img: './img/marron.png' },
+    { nombre: 'remolacha', img: './img/violeta remolacha.png' },
+    { nombre: 'repollo', img: './img/violeta repollo.png' }
+  ];
+
+  let objetos = [];
+  let pigmentos = [];
+
+  const columnaObjetos = document.getElementById('columna-objetos');
+  const columnaPigmentos = document.getElementById('columna-pigmentos');
+  const mensaje = document.getElementById('mensaje');
+  const botonReiniciar = document.getElementById('boton-reiniciar');
+
+  let seleccionados = [];
+  let emparejados = new Set();
+
+  function iniciarJuego() {
+    document.getElementById('pantalla-inicio').style.display = 'none';
+    document.getElementById('contenedor-juego').style.display = 'flex';
+    mensaje.textContent = '';
+    reiniciarJuego();
+  }
+
+  function reiniciarJuego() {
+    columnaObjetos.innerHTML = '';
+    columnaPigmentos.innerHTML = '';
+    mensaje.textContent = '';
+    seleccionados = [];
+    emparejados.clear();
+    crearTablero();
+  }
+
+  function crearElemento(item) {
+    const div = document.createElement('div');
+    div.classList.add('img-container');
+    div.dataset.nombre = item.nombre;
+
+    const img = document.createElement('img');
+    img.src = item.img;
+    img.alt = item.nombre;
+    img.draggable = false;
+
+    div.appendChild(img);
+    div.addEventListener('click', () => manejarClick(div));
+
+    return div;
+  }
+
+  function crearTablero() {
+    objetos = [...objetosOriginal];
+    pigmentos = [...pigmentosOriginal].sort(() => 0.5 - Math.random());
+
+    objetos.forEach(obj => {
+      columnaObjetos.appendChild(crearElemento(obj));
+    });
+
+    pigmentos.forEach(pig => {
+      columnaPigmentos.appendChild(crearElemento(pig));
+    });
+  }
+
+  function manejarClick(div) {
+    if (div.classList.contains('grayscale')) return;
+    if (seleccionados.length === 2) return;
+
+    seleccionados.push(div);
+    // borde azul con sombra para mejor visibilidad
+    div.style.border = '2px solid #1e90ff';
+    div.style.boxShadow = '0 0 8px 2px rgba(30,144,255,0.7)';
+
+    if (seleccionados.length === 2) {
+      const [primero, segundo] = seleccionados;
+      const nombre1 = primero.dataset.nombre;
+      const nombre2 = segundo.dataset.nombre;
+
+      if (nombre1 === nombre2 && primero !== segundo) {
+        primero.classList.add('grayscale');
+        segundo.classList.add('grayscale');
+        emparejados.add(nombre1);
+        verificarVictoria();
+      }
+
+      setTimeout(() => {
+        primero.style.border = '2px solid #ccc';
+        primero.style.boxShadow = 'none';
+        segundo.style.border = '2px solid #ccc';
+        segundo.style.boxShadow = 'none';
+        seleccionados = [];
+      }, 800);
+    }
+  }
+
+  function verificarVictoria() {
+    if (emparejados.size === objetos.length) {
+      mensaje.textContent = "¡Felicitaciones, lo hiciste correctamente!";
+    }
+  }
+</script>
+
+</body>
+</html>
